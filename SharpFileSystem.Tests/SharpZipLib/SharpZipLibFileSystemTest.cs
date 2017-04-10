@@ -125,7 +125,7 @@ namespace SharpFileSystem.Tests.SharpZipLib
             Assert.IsTrue(fileSystem.Exists(fsp));
 
             var zipFile = fileSystem.OpenFile(fsp, FileAccess.Read);
-
+            zipFile.ReadAll();
             var zipFileSystem = SharpZipLibFileSystem.Open(zipFile);
 
             Assert.IsNotNull(zipFileSystem);

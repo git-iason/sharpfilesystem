@@ -14,12 +14,14 @@ namespace SharpFileSystem.SharpZipLib
 
         public static SharpZipLibFileSystem Open(Stream s)
         {
-            return new SharpZipLibFileSystem(new ZipFile(s));
+            var seeking = s.CanSeek ? s : new SeekStream(s);
+            return new SharpZipLibFileSystem(new ZipFile(seeking));
         }
 
         public static SharpZipLibFileSystem Create(Stream s)
         {
-            return new SharpZipLibFileSystem(ZipFile.Create(s));
+            var seeking = s.CanSeek ? s : new SeekStream(s);
+            return new SharpZipLibFileSystem(ZipFile.Create(seeking));
         }
 
         private SharpZipLibFileSystem(ZipFile zipFile)
