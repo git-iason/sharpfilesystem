@@ -125,10 +125,28 @@ namespace SharpFileSystem.Tests.SharpZipLib
             Assert.IsTrue(fileSystem.Exists(fsp));
 
             var zipFile = fileSystem.OpenFile(fsp, FileAccess.Read);
-            zipFile.ReadAll();
-            var zipFileSystem = SharpZipLibFileSystem.Open(zipFile);
+            var seekingZip = new SeekStream(zipFile);
+            seekingZip.Seek(0, SeekOrigin.End);
+            seekingZip.Seek(0, SeekOrigin.Begin);
+            var zipFileSystem = SharpZipLibFileSystem.Open(seekingZip);
 
             Assert.IsNotNull(zipFileSystem);
+
+
+            var text = "recent text";
+            var textBytes = Encoding.ASCII.GetBytes(text);
+            fsp = FileSystemPath.Parse("/mostrecentfile.txt");
+
+            fileSystem.ZipFile.BeginUpdate();
+            fs = zipFileSystem.CreateFile(fsp, textBytes);
+            fs.Close();
+            fileSystem.ZipFile.CommitUpdate();
+            Assert.IsTrue(zipFileSystem.Exists(fsp));
+
+            fs = zipFileSystem.OpenFile(fsp, FileAccess.Read);
+            var fsText = fs.ReadAllText();
+
+            Assert.IsTrue(fsText.Equals(text));
             //cleanup so we don't affect other unit tests
             fileSystem.Delete(fsp);
         }
