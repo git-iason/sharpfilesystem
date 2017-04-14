@@ -6,6 +6,7 @@ using System.Text;
 using ICSharpCode.SharpZipLib.Zip;
 using NUnit.Framework;
 using SharpFileSystem.IO;
+using SharpFileSystem.SharpZipArchive;
 using SharpFileSystem.SharpZipLib;
 
 namespace SharpFileSystem.Tests.SharpZipLib
@@ -98,8 +99,8 @@ namespace SharpFileSystem.Tests.SharpZipLib
             fileSystem.Delete(fsp);
         }
 
-        [Test]
-        public void EmbeddedZipTest()
+       [Test]
+       public void EmbeddedZipTest()
         {
             var lms = new MemoryStream();
             var lzs = lms;
@@ -125,12 +126,51 @@ namespace SharpFileSystem.Tests.SharpZipLib
             Assert.IsTrue(fileSystem.Exists(fsp));
 
             var zipFile = fileSystem.OpenFile(fsp, FileAccess.Read);
-
-            var zipFileSystem = SharpZipLibFileSystem.Open(zipFile);
+         
+            var seekingStream = new SeekStream(zipFile);
+            seekingStream.Seek(0, SeekOrigin.End);
+            seekingStream.Seek(0, SeekOrigin.Begin);
+            var zipFileSystem = NetZipArchiveFileSystem.Open(seekingStream);
 
             Assert.IsNotNull(zipFileSystem);
-            //cleanup so we don't affect other unit tests
-            fileSystem.Delete(fsp);
+
+
+            var text = "recent text";
+            var textBytes = Encoding.ASCII.GetBytes(text);
+            fsp = FileSystemPath.Parse("/mostrecentfile.txt");
+
+            fileSystem.ZipFile.BeginUpdate();
+            fs = zipFileSystem.CreateFile(fsp,textBytes);
+            fs.Close();
+            fileSystem.ZipFile.CommitUpdate();
+            fileSystem.ZipFile.Close();
+
+            Assert.IsTrue(zipFileSystem.Exists(fsp));
+
+            fs = zipFileSystem.OpenFile(fsp, FileAccess.Read);
+            var fsText = fs.ReadAllText();
+
+            Assert.IsTrue(fsText.Equals(text));
+
+
+            zipFile.Close();
+            seekingStream.Close();
+
+            fsp = FileSystemPath.Parse("/mostrecentfile.zip");
+            Assert.IsTrue(fileSystem.Exists(fsp));
+            zipFile = fileSystem.OpenFile(fsp, FileAccess.Read);
+
+            seekingStream = new SeekStream(zipFile);
+            seekingStream.Seek(0, SeekOrigin.End);
+            seekingStream.Seek(0, SeekOrigin.Begin);
+            zipFileSystem = NetZipArchiveFileSystem.Open(seekingStream);
+
+            fsp = FileSystemPath.Parse("/mostrecentfile.txt");
+            Assert.IsTrue(zipFileSystem.Exists(fsp));
+            fs = zipFileSystem.OpenFile(fsp, FileAccess.Read);
+            fsText = fs.ReadAllText();
+
+            Assert.IsTrue(fsText.Equals(text));
         }
     }
 }

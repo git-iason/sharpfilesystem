@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Compression;
+using SharpFileSystem.IO;
 
 namespace SharpFileSystem.SharpZipArchive
 {
@@ -79,10 +80,22 @@ namespace SharpFileSystem.SharpZipArchive
 
         public Stream CreateFile(FileSystemPath path)
         {
-            var zae = ZipArchive.CreateEntry(ToEntryPath(path));
-            return zae.Open();
+            return CreateFile(path,null);
         }
 
+        public Stream CreateFile(FileSystemPath path, byte[] data)
+        {
+            var zae = ZipArchive.CreateEntry(ToEntryPath(path));
+            var stream = zae.Open();
+
+            if (data != null)
+            {
+                stream.Write(data);
+                stream.Close();
+            }
+
+            return zae.Open();
+        }
         public Stream OpenFile(FileSystemPath path, FileAccess access)
         {
             var zae = ZipArchive.GetEntry(ToEntryPath(path));

@@ -44,6 +44,7 @@
     <Compile Include="FileSystems\MemoryFileSystemTest.cs" />
     <Compile Include="FileSystems\PhysicalFileSystemTest.cs" />
     <Compile Include="NetZipArchive\NetZipArchiveFileSystemTest.cs" />
+    <Compile Include="SharpZipLib\SeekStream.cs" />
     <Compile Include="SharpZipLib\SharpZipLibFileSystemTest.cs" />
   </ItemGroup>
   <ItemGroup>
